@@ -50,18 +50,18 @@ router.post(
         expiresIn: "20m",
       });
       let vericationEmailLink = `${process.env.CLIENT_URL}/activate/${emailCode}`;
-      await mailsend({
-        email: userData.email,
-        subject: "Verification Mail",
-        url: vericationEmailLink,
-        name: userData.name,
-      });
+      // await mailsend({
+      //   email: userData.email,
+      //   subject: "Verification Mail",
+      //   url: vericationEmailLink,
+      //   name: userData.name,
+      // });
       success = true;
       return res.json({ success, authtoken, emailCode });
     } catch (error) {
       success = false;
       console.log(error);
-      return res.send(500).json({ success: false, error });
+      return res.status(500).json({ success: false, error });
     }
   }
 );

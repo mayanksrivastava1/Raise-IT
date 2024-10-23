@@ -5,10 +5,9 @@ const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const fetchuser = require("../Middleware/fetchuser");
-const mailsend = require("../Middleware/mailsender");
 require("dotenv").config();
 
-// Creating an user
+// Creating a user
 router.post(
   "/create-user",
   // Validation for incoming request
@@ -32,7 +31,7 @@ router.post(
           error: "Sorry a user with this email already exists",
         });
       }
-      // if user is not already registered then create a new user
+      // If user is not already registered then create a new user
       let salt = await bcrypt.genSaltSync(10);
       let secured = await bcrypt.hashSync(req.body.password, salt);
       let userData = await User.create({
@@ -40,24 +39,16 @@ router.post(
         password: secured,
         email: req.body.email,
       });
+
       const data = {
         user: {
           id: userData.id,
         },
       };
       const authtoken = jwt.sign(data, process.env.JWT_SECRET);
-      let emailCode = jwt.sign(data, process.env.ACTIVATION_TOKEN_SECRET, {
-        expiresIn: "20m",
-      });
-      let vericationEmailLink = `${process.env.CLIENT_URL}/activate/${emailCode}`;
-      // await mailsend({
-      //   email: userData.email,
-      //   subject: "Verification Mail",
-      //   url: vericationEmailLink,
-      //   name: userData.name,
-      // });
+      
       success = true;
-      return res.json({ success, authtoken, emailCode });
+      return res.json({ success, authtoken });
     } catch (error) {
       success = false;
       console.log(error);
@@ -71,7 +62,7 @@ router.post(
   "/login",
   [
     body("email", "Enter a valid email").isEmail(),
-    body("password", "Password string cannot be blank").exists(),
+    body("password", "Password cannot be blank").exists(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -87,12 +78,9 @@ router.post(
           success: false,
           error: "Please try to login with correct credentials",
         });
-      } else if (user.isVerified === false) {
-        return res
-          .status(500)
-          .json({ success: false, error: "Please Verify your Email" });
       }
-      //main password comparision
+
+      // Main password comparison
       const passwordCompare = await bcrypt.compare(password, user.password);
       if (!passwordCompare) {
         return res.status(400).json({
@@ -100,12 +88,12 @@ router.post(
           error: "Please try to login with correct credentials",
         });
       }
+
       const data = {
         user: {
           id: user.id,
         },
       };
-      console.log(process.env.JWT_SECRET);
       const authtoken = jwt.sign(data, process.env.JWT_SECRET);
       success = true;
       return res.json({ success, authtoken });
@@ -115,6 +103,20 @@ router.post(
     }
   }
 );
+
+// Route for Fetching user data after log-in
+router.get("/getuser", fetchuser, async (req, res) => {
+  try {
+    let userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    res.json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+module.exports = router;
+
 
 // Route 5: For Email Verification
 router.post("/email/activation", async (req, res) => {
@@ -137,15 +139,5 @@ router.post("/email/activation", async (req, res) => {
   }
 });
 
-// Route 4: for Fetching user data after log-in
-router.get("/getuser", fetchuser, async (req, res) => {
-  try {
-    let userId = req.user.id;
-    const user = await User.findById(userId).select("-password");
-    res.json({ success: true, data: user });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
 
 module.exports = router;

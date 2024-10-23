@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build" :"npm install",
-    "start" : "node server.js"
+    "build": "npm install",
+    "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +19,7 @@
     "googleapis": "^144.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.6.2",
-    "nodemailer": "^6.9.15"
+    "nodemailer": "^6.9.15",
+    "razorpay": "^2.9.4"
   }
 }

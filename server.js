@@ -24,11 +24,11 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Import routes
 const userRoutes = require('./Routes/authentication');
-// const projectRoutes = require('./Routes/projectRoutes');
+const projectRoutes = require('./Routes/investor');
 
 // Use routes
 app.use('/api/users', userRoutes);
-// app.use('/api/projects', projectRoutes);
+app.use('/api/projects', projectRoutes);
 
 // Error handling
 app.use((err, req, res, next) => {
